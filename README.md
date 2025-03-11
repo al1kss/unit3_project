@@ -321,3 +321,9 @@ Status Dropdown UI
 ```
 - Enables quick status updates for each order
 
+### Credits:
+1. https://stackoverflow.com/questions/63783442/how-to-make-a-kivymd-page-navigation-and-insert-some-categories-at-the-main-menu
+2. https://kivymd.readthedocs.io/en/1.1.1/components/button/#mdiconbutton (code for all icon navigation)
+3. https://www.istockphoto.com/en/search/2/image?mediatype=illustration&phrase=logo+funny+pizza
+4. https://stackoverflow.com/questions/60387236/valueerror-kivymd-app-object-must-be-inherited-from-kivymd-app-mdapp
+5. https://kivymd.readthedocs.io/en/latest/themes/theming/
