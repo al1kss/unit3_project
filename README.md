@@ -130,3 +130,43 @@ This method protects sensitive data by ensuring that even if the database is com
 -- The user type stored in the 'user' table facilitates role-based access control, ensuring that only admins can access certain features (e.g., updating order statuses).
 - Transaction Consistency:
 -- The checkout process writes order data to 'orders.sql' with a unique ticket number and default status, ensuring that each order is recorded reliably.
+
+
+### 2. Modification of Food Listings – #Success Criteria 4
+To meet success criterion 4, I implemented a system where only admin users can add or modify food listings in the pizza app. This ensures that regular users cannot alter the menu, maintaining control over available food options. Below is a detailed explanation of how this functionality is achieved.
+#### Restricting Access to Admin Users
+The system ensures that only admin users can modify the food menu using the 'LoginScreenReal.current_user_type' variable. This variable stores the user type and determines if an "Add Pizza" button is displayed.
+
+#### Admin-Only Add Button
+In the 'MainScreen' class, when loading the menu, the system checks whether the logged-in user is an admin:
+```.py
+if LoginScreenReal.current_user_type == "admin":
+    container.add_widget(AddPizzaCard())
+```
+- If the current user is an admin, an instance of 'AddPizzaCard' is added to the screen.
+- If the user is not an admin, they do not see the button and cannot add new food items.
+
+#### Adding a New Pizza Item
+When an admin clicks the "Add Pizza" button, a pop-up ('MDDialog') appears, allowing them to input details for a new pizza.
+#### Pop-Up Dialog for Admins
+The 'show_add_pizza_dialog()' function constructs a form for adding new food items:
+```.py
+self.pizza_name = MDTextField(hint_text="Pizza Name")
+self.pizza_desc = MDTextField(hint_text="Description")
+self.pizza_price = MDTextField(hint_text="Price", input_type="number")
+self.pizza_image = MDTextField(hint_text="Image Filename", text="pizza.png")
+```
+- Admins enter the name, description, price, and image filename of the pizza.
+- Two buttons are present:
+- '"Cancel"' – closes the pop-up.
+- '"Add"' – calls the 'add_pizza_to_db()' function to store the new pizza.
+
+#### Storing the New Pizza in the Database
+Once the admin submits the form, the 'add_pizza_to_db()' function processes the data:
+```.py
+query = f"""
+INSERT INTO menu (name, description, price, image)
+VALUES ('{name}', '{description}', {price}, '{image}')
+"""
+db.run_save(query)
+```
