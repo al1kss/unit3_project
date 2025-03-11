@@ -62,3 +62,71 @@ All transaction data, including user credentials, order details, and menu inform
 | 19      | Optimize SQL queries used for loading menu items and orders to improve performance                           | Faster data retrieval leading to a more responsive application                                               | 1 hour        | March 11               | B         |
 | 20      | Working on UML, System Diagram for Criterion B                                                               | Clear diagrams for easy program underdansting                                                                | 4 hours       | March 11               | B         |
 | 21      | Conduct a final review meeting with the client to demonstrate the completed application and gather feedback  | Client approval and confirmation that the application meets all defined success criteria                     | 1 hour        | March 11               | A         |
+
+
+# Criterion C: Development
+
+### 1. Secure and Efficient Data Storage – #Success Criteria 5
+To meet success criterion 5, I ensured that all transaction data—including user credentials, menu information, and order details—is securely stored in an SQLite database. This strategy guarantees data integrity, facilitates easy retrieval, and minimizes the risk of unauthorized access.
+
+My project utilizes separate SQLite databases to logically partition different types of data:
+
+#### User Authentication (login.sql):
+The 'user' table stores user credentials and role information. This table enforces uniqueness for usernames and emails while using role-based access to distinguish between regular users and administrators. For example:
+```.py
+CREATE TABLE IF NOT EXISTS user(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    email TEXT UNIQUE,
+    password VARCHAR(256),
+    type TEXT DEFAULT 'user'
+);
+```
+#### Menu Data (menu.sql):
+The 'menu' table holds details of each pizza item, such as the name, description, price, and image filename. This design ensures that menu items are unique and contain all the necessary details for display:
+```.py
+CREATE TABLE IF NOT EXISTS menu(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT NOT NULL,
+    price REAL NOT NULL,
+    image TEXT DEFAULT 'pizza.png'
+);
+```
+#### Order Details (orders.sql):
+The 'orders' table records every order made by users. Each order includes the user ID, user email, item name, official price, a generated ticket number, and a default status of “Awaiting”. This structure allows for efficient order tracking and enables admin users to update the order status:
+```.py
+CREATE TABLE IF NOT EXISTS orders(
+    order_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    user_email TEXT,
+    item_name TEXT,
+    item_price REAL,
+    ticket_number TEXT,
+    status TEXT DEFAULT 'Awaiting'
+);
+```
+#### I used AutoIncrement for all IDs since, AutoIncrement is a feature in SQL that allows you to automatically generate unique values for a column when new rows are inserted into a table
+#### Password Security
+To safeguard user credentials, I implemented password hashing using a custom module named 'secure_password'. This module provides two key functions:
+- 'encrypt_password(password)': Hashes the plain-text password (using a secure SHA-256 algorithm) before storing it in the database.
+- 'check_password(user_password, hashed_password)': Verifies the provided password during login by comparing its hash with the stored hash.
+For example, during registration:
+```.py
+password_hash = encrypt_password(password)
+db.run_save(f"INSERT INTO user(username, email, password) VALUES ('{username}', '{email}', '{password_hash}')")
+```
+And during login:
+```.py
+user_info = db.search(f"SELECT * FROM user WHERE username='{username}'")
+if user_info and check_password(user_password=password, hashed_password=user_info[0][3]):
+    print("Login successful!")
+```
+This method protects sensitive data by ensuring that even if the database is compromised, actual passwords remain undisclosed.
+#### Data Integrity and Retrieval
+- Accurate Billing:
+-- When an order is placed, the system fetches the official price from the 'menu.sql' database to ensure accurate billing.
+- Role-based Access:
+-- The user type stored in the 'user' table facilitates role-based access control, ensuring that only admins can access certain features (e.g., updating order statuses).
+- Transaction Consistency:
+-- The checkout process writes order data to 'orders.sql' with a unique ticket number and default status, ensuring that each order is recorded reliably.
