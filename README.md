@@ -9,13 +9,27 @@ The owner of "NomNom" has observed a noticeable dip in customer satisfaction and
 ## Proposed Solution
 I propose developing an intuitive, cross-platform application designed to streamline the ordering process for a modern pizza restaurant. The app will feature a dynamic graphical user interface that enables customers to effortlessly browse a visually rich menu, customize their pizzas, and place orders with confidence. Every order will be securely recorded, ensuring complete transparency and accuracy, while updates are sent directly to the kitchen and delivery teams, reducing errors and enhancing efficiency.
 
-Python is the ideal language for this project because of its inherent versatility across both Intel x86 and ARM architectures and its strong support on multiple operating systems. Its extensive library ecosystem accelerates development, making it easier to integrate additional features and maintain the application over time.
+Python is the ideal language for this project because of its inherent versatility across both Intel x86 and ARM architectures and its strong support on multiple operating systems.[^1] Its extensive library ecosystem accelerates development, making it easier to integrate additional features and maintain the application over time.[^2]
 
-For the graphical interface, the solution leverages the Kivy framework combined with KivyMD. Kivy’s adaptive design ensures the app looks and performs well on devices with different screen sizes and resolutions, which is critical for delivering a consistent user experience. Meanwhile, KivyMD introduces Material Design components that offer a sleek, modern appearance along with intuitive touch-friendly interactions. This combination not only simplifies the development process but also minimizes unexpected behavior, ensuring a stable and polished final product.
+For the graphical interface, the solution leverages the Kivy framework combined with KivyMD[^3]. Kivy’s adaptive design ensures the app looks and performs well on devices with different screen sizes and resolutions, which is critical for delivering a consistent user experience. Meanwhile, KivyMD introduces Material Design components that offer a sleek, modern appearance along with intuitive touch-friendly interactions[^11]. This combination not only simplifies the development process but also minimizes unexpected behavior, ensuring a stable and polished final product[^7].
 
-Data management is addressed with SQLite, a robust relational database that is well-suited for handling the app’s complex and interconnected data—from customer profiles and order histories to detailed menu information. SQLite’s lightweight, embedded nature guarantees rapid data access even in environments with limited connectivity, and its serverless design helps keep operating costs low while ensuring scalability as the restaurant expands.
+Data management is addressed with SQLite[^8], a robust relational database that is well-suited for handling the app’s complex and interconnected data—from customer profiles and order histories to detailed menu information. SQLite’s lightweight[^5], embedded nature guarantees rapid data access even in environments with limited connectivity, and its serverless design helps keep operating costs low while ensuring scalability as the restaurant expands.
 
 Overall, this solution provides a secure, efficient, and user-friendly platform that improves order accuracy, enhances customer satisfaction, and streamlines operations for both the front of house and the back kitchen.
+
+
+[^1]: Merrill, Cache. "7 Important Reasons Why You Should Use Python." Zibtek, 1 September 2019, https://www.zibtek.com/blog/7-important-reasons-why-you-should-use-python
+[^2]:Yakymiv, Volodymyr. "Choosing the Best Language for App Development: 7 Options to Consider." Forbytes, 3 November 2023, https://forbytes.com/blog/best-language-for-app-development
+[^3]:"Kivy Tutorial." Free Learning Platform For Better Future, https://www.javatpoint.com/kivy#AdvantagesDisadvantages/
+[^4]:"Building a Simple Application using KivyMD in Python." GeeksforGeeks, https://www.geeksforgeeks.org/building-a-simple-application-using-kivymd-in-python/
+[^5]:"Should you use CSV, JSON, or SQL?." PythonHow, https://pythonhow.com/python-tutorial/miscellaneous/csv-json-or-sql/
+[^6]:"AQLite Is Serverless." SQLite, https://www.sqlite.org/serverless.html
+[^7]:"SqLite Advantages." Free Learning Platform For Better Future, https://www.javatpoint.com/sqlite-advantages-and-disadvantages
+[^8]:Yugulalp, Serdar. "Why you should use SQLite." Infoworld, 13 February 2019, https://www.infoworld.com/article/3331923/why-you-should-use-sqlite.html 
+[^9]: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+[^10]: https://kivy.org/doc/stable/api-kivy.properties.html
+[^11]: https://kivymd.readthedocs.io/en/latest/components/dialog/
+[^12]: https://docs.python.org/3/library/threading.html
 
 ## Success Criteria
 1. Robust Authentication System:
@@ -307,15 +321,3 @@ Status Dropdown UI
 ```
 - Enables quick status updates for each order
 
-[^1]: Merrill, Cache. "7 Important Reasons Why You Should Use Python." Zibtek, 1 September 2019, https://www.zibtek.com/blog/7-important-reasons-why-you-should-use-python
-[^2]:Yakymiv, Volodymyr. "Choosing the Best Language for App Development: 7 Options to Consider." Forbytes, 3 November 2023, https://forbytes.com/blog/best-language-for-app-development
-[^3]:"Kivy Tutorial." Free Learning Platform For Better Future, https://www.javatpoint.com/kivy#AdvantagesDisadvantages/
-[^4]:"Building a Simple Application using KivyMD in Python." GeeksforGeeks, https://www.geeksforgeeks.org/building-a-simple-application-using-kivymd-in-python/
-[^5]:"Should you use CSV, JSON, or SQL?." PythonHow, https://pythonhow.com/python-tutorial/miscellaneous/csv-json-or-sql/
-[^6]:"AQLite Is Serverless." SQLite, https://www.sqlite.org/serverless.html
-[^7]:"SqLite Advantages." Free Learning Platform For Better Future, https://www.javatpoint.com/sqlite-advantages-and-disadvantages
-[^8]:Yugulalp, Serdar. "Why you should use SQLite." Infoworld, 13 February 2019, https://www.infoworld.com/article/3331923/why-you-should-use-sqlite.html 
-[^9]: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
-[^10]: https://kivy.org/doc/stable/api-kivy.properties.html
-[^11]: https://kivymd.readthedocs.io/en/latest/components/dialog/
-[^12]: https://docs.python.org/3/library/threading.html
