@@ -72,7 +72,7 @@ To meet success criterion 5, I ensured that all transaction data—including use
 My project utilizes separate SQLite databases to logically partition different types of data:
 
 #### User Authentication (login.sql):
-The 'user' table stores user credentials and role information. This table enforces uniqueness for usernames and emails while using role-based access to distinguish between regular users and administrators. For example:
+The `user` table stores user credentials and role information. This table enforces uniqueness for usernames and emails while using role-based access to distinguish between regular users and administrators. For example:
 ```.py
 CREATE TABLE IF NOT EXISTS user(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS user(
 );
 ```
 #### Menu Data (menu.sql):
-The 'menu' table holds details of each pizza item, such as the name, description, price, and image filename. This design ensures that menu items are unique and contain all the necessary details for display:
+The `menu` table holds details of each pizza item, such as the name, description, price, and image filename. This design ensures that menu items are unique and contain all the necessary details for display:
 ```.py
 CREATE TABLE IF NOT EXISTS menu(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS menu(
 );
 ```
 #### Order Details (orders.sql):
-The 'orders' table records every order made by users. Each order includes the user ID, user email, item name, official price, a generated ticket number, and a default status of “Awaiting”. This structure allows for efficient order tracking and enables admin users to update the order status:
+The `orders` table records every order made by users. Each order includes the user ID, user email, item name, official price, a generated ticket number, and a default status of “Awaiting”. This structure allows for efficient order tracking and enables admin users to update the order status:
 ```.py
 CREATE TABLE IF NOT EXISTS orders(
     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -108,9 +108,9 @@ CREATE TABLE IF NOT EXISTS orders(
 ```
 #### I used AutoIncrement for all IDs since, AutoIncrement is a feature in SQL that allows you to automatically generate unique values for a column when new rows are inserted into a table
 #### Password Security
-To safeguard user credentials, I implemented password hashing using a custom module named 'secure_password'. This module provides two key functions:
-- 'encrypt_password(password)': Hashes the plain-text password (using a secure SHA-256 algorithm) before storing it in the database.
-- 'check_password(user_password, hashed_password)': Verifies the provided password during login by comparing its hash with the stored hash.
+To safeguard user credentials, I implemented password hashing using a custom module named `secure_password`. This module provides two key functions:
+- `encrypt_password(password)`: Hashes the plain-text password (using a secure SHA-256 algorithm) before storing it in the database.
+- `check_password(user_password, hashed_password)`: Verifies the provided password during login by comparing its hash with the stored hash.
 For example, during registration:
 ```.py
 password_hash = encrypt_password(password)
@@ -125,31 +125,31 @@ if user_info and check_password(user_password=password, hashed_password=user_inf
 This method protects sensitive data by ensuring that even if the database is compromised, actual passwords remain undisclosed.
 #### Data Integrity and Retrieval
 - Accurate Billing:
--- When an order is placed, the system fetches the official price from the 'menu.sql' database to ensure accurate billing.
+-- When an order is placed, the system fetches the official price from the `menu.sql` database to ensure accurate billing.
 - Role-based Access:
--- The user type stored in the 'user' table facilitates role-based access control, ensuring that only admins can access certain features (e.g., updating order statuses).
+-- The user type stored in the `user` table facilitates role-based access control, ensuring that only admins can access certain features (e.g., updating order statuses).
 - Transaction Consistency:
--- The checkout process writes order data to 'orders.sql' with a unique ticket number and default status, ensuring that each order is recorded reliably.
+-- The checkout process writes order data to `orders.sql` with a unique ticket number and default status, ensuring that each order is recorded reliably.
 
 
 ### 2. Modification of Food Listings – #Success Criteria 4
 To meet success criterion 4, I implemented a system where only admin users can add or modify food listings in the pizza app. This ensures that regular users cannot alter the menu, maintaining control over available food options. Below is a detailed explanation of how this functionality is achieved.
 #### Restricting Access to Admin Users
-The system ensures that only admin users can modify the food menu using the 'LoginScreenReal.current_user_type' variable. This variable stores the user type and determines if an "Add Pizza" button is displayed.
+The system ensures that only admin users can modify the food menu using the `LoginScreenReal.current_user_type` variable. This variable stores the user type and determines if an "Add Pizza" button is displayed.
 
 #### Admin-Only Add Button
-In the 'MainScreen' class, when loading the menu, the system checks whether the logged-in user is an admin:
+In the `MainScreen` class, when loading the menu, the system checks whether the logged-in user is an admin:
 ```.py
 if LoginScreenReal.current_user_type == "admin":
     container.add_widget(AddPizzaCard())
 ```
-- If the current user is an admin, an instance of 'AddPizzaCard' is added to the screen.
+- If the current user is an admin, an instance of `AddPizzaCard` is added to the screen.
 - If the user is not an admin, they do not see the button and cannot add new food items.
 
 #### Adding a New Pizza Item
-When an admin clicks the "Add Pizza" button, a pop-up ('MDDialog') appears, allowing them to input details for a new pizza.
+When an admin clicks the "Add Pizza" button, a pop-up (`MDDialog`) appears, allowing them to input details for a new pizza.
 #### Pop-Up Dialog for Admins
-The 'show_add_pizza_dialog()' function constructs a form for adding new food items:
+The `show_add_pizza_dialog()` function constructs a form for adding new food items:
 ```.py
 self.pizza_name = MDTextField(hint_text="Pizza Name")
 self.pizza_desc = MDTextField(hint_text="Description")
@@ -158,11 +158,11 @@ self.pizza_image = MDTextField(hint_text="Image Filename", text="pizza.png")
 ```
 - Admins enter the name, description, price, and image filename of the pizza.
 - Two buttons are present:
-- '"Cancel"' – closes the pop-up.
-- '"Add"' – calls the 'add_pizza_to_db()' function to store the new pizza.
+- `"Cancel"` – closes the pop-up.
+- `"Add"` – calls the `add_pizza_to_db()` function to store the new pizza.
 
 #### Storing the New Pizza in the Database
-Once the admin submits the form, the 'add_pizza_to_db()' function processes the data:
+Once the admin submits the form, the `add_pizza_to_db()` function processes the data:
 ```.py
 query = f"""
 INSERT INTO menu (name, description, price, image)
