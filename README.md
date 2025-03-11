@@ -170,3 +170,139 @@ VALUES ('{name}', '{description}', {price}, '{image}')
 """
 db.run_save(query)
 ```
+
+### Immediate Staff Notice - #Success Criteria 3
+This functionality ensures that kitchen and delivery staff receive real-time updates on new orders, allowing them to prepare and dispatch items promptly. The implementation includes an admin order management screen that dynamically updates with the latest orders and enables staff to change order statuses.
+#### Key Components
+1. `OrderItemRow` Class (Order Representation)
+2. `AdminOrdersScreen` Class (Order Management)
+3. 
+#### Kivy KV Layout for UI Representation
+Explanation of `OrderItemRow`
+```.py
+class OrderItemRow(MDCard):
+    order_data = ListProperty()
+```
+
+- The `OrderItemRow` class represents individual orders in the admin panel.
+- The `ListProperty` stores order details (e.g., order ID, customer email, item name, price, ticket number, and status).
+#### Initializing Order Data
+```.py
+ def __init__(self, order_data, **kwargs):
+        padded_data = list(order_data)
+        if len(padded_data) < 7:
+            defaults = ["Unknown", "Unknown", "Unknown", "Unknown", 0, "Unknown", "Awaiting"]
+            padded_data += defaults[len(padded_data):]
+        kwargs["order_data"] = padded_data
+        super().__init__(**kwargs)
+```
+- This method ensures that incomplete order data is padded with default values.
+- The `kwargs` dictionary ensures that the parent class ('MDCard') is initialized correctly.
+- Why this approach? It prevents crashes due to missing data and guarantees UI consistency.
+
+#### Handling Order Status Changes
+```.py
+    def open_status_menu(self):
+        if not self.menu:
+            menu_items = [
+                {"text": "Awaiting", "viewclass": "OneLineListItem", "on_release": lambda x="Awaiting": self.set_status(x)},
+                {"text": "Done", "viewclass": "OneLineListItem", "on_release": lambda x="Done": self.set_status(x)},
+            ]
+            self.menu = MDDropdownMenu(
+                caller=self.ids.status_dropdown,
+                items=menu_items,
+                width_mult=4,
+            )
+        self.menu.open()
+```
+- The `open_status_menu` method creates a dropdown menu to update an order’s status.
+- Why a dropdown menu? It simplifies UI interaction, preventing manual text entry errors.
+
+```.py
+    def set_status(self, new_status):
+        self.ids.status_dropdown.text = new_status
+        self.menu.dismiss()
+        App.get_running_app().root.get_screen("AdminOrdersScreen").update_order_status(self.order_data[0], new_status)
+```
+- Updates the UI to reflect the new status.
+- Calls `update_order_status()` in `AdminOrdersScreen` to modify the database.
+#### Explanation of AdminOrdersScreen
+```.py
+class AdminOrdersScreen(Screen):
+    def on_pre_enter(self, *args):
+        self.load_orders()
+```
+- Ensures that orders are refreshed whenever this screen is entered.
+Loading Orders from Database
+```.py
+    def load_orders(self):
+        container = self.ids.orders_list
+        container.clear_widgets()
+        db = DatabaseManager(name="orders.sql")
+        query = """
+            SELECT order_id, user_id, user_email, item_name, item_price, ticket_number, status
+            FROM orders
+            ORDER BY order_id DESC
+        """
+        orders = db.search(query)
+        db.close()
+        for order in orders:
+            order_card = OrderItemRow(order_data=order)
+            container.add_widget(order_card)
+```
+- This method fetches all orders from the database, sorts them by order_id (newest first), and populates the admin UI.
+- Why sort by `order_id` DESC? Ensures that the most recent orders appear at the top.
+Updating Order Status in Database
+```.py
+    def update_order_status(self, order_id, new_status):
+        db = DatabaseManager(name="orders.sql")
+        query = f"UPDATE orders SET status = '{new_status}' WHERE order_id = {order_id}"
+        db.run_save(query)
+        db.close()
+        self.load_orders()
+```
+- Modifies the order’s status in the database.
+- Why reload orders? To reflect the latest changes instantly on the UI.
+
+### Explanation of KV File (UI Representation)
+```.kv
+<AdminOrdersScreen>:
+    name: "AdminOrdersScreen"
+    MDBoxLayout:
+        orientation: "vertical"
+        md_bg_color: 0.06, 0.06, 0.06, 1
+```
+- Defines the overall layout of the admin screen.
+Orders List Container
+```.kv
+        ScrollView:
+            MDBoxLayout:
+                id: orders_list
+                orientation: "vertical"
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(8)
+                padding: dp(8)
+```
+- Displays orders dynamically inside a scrollable container
+Order Item Layou
+```.kv
+<OrderItemRow@MDCard>:
+    orientation: "vertical"
+    size_hint_y: None
+    height: dp(120)
+    md_bg_color: 1.0, 0.549, 0.0, 1
+    padding: dp(10)
+    spacing: dp(5)
+```
+- Each order appears as a colored card.
+- Why `md_bg_color: 1.0, 0.549, 0.0, 1`? Uses an orange shade to indicate urgency.
+Status Dropdown UI
+```.kv
+        MDDropDownItem:
+            id: status_dropdown
+            text: root.order_data[6]
+            on_release: root.open_status_menu()
+            size_hint_x: 0.5
+```
+- Enables quick status updates for each order
