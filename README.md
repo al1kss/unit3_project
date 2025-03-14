@@ -1,4 +1,5 @@
 ![dd](https://github.com/user-attachments/assets/21aa52c9-d205-4657-a756-9f1e1c3acc35)
+**Fig 1** *Delivery man waiting to board a train*
 # Unit 3: Restaraunt Manager
 
 ## Criteria A: Planning
@@ -33,6 +34,10 @@ I propose creating a cross-platform computer application to streamline ordering 
 
 
 # Criterion B: Design
+## System Diagram
+![Project 1](https://github.com/user-attachments/assets/856454e9-b49a-491b-a471-1ba7603a3978) 
+**Fig 2** *System diagram of proposed solution*
+
 ## Test Plan
 | Test Case                                         | Procedure                                                                                                                                                                                                        | Planned Outcome                                                                                                                                                 | Success Criteria                                                                                                            |
 |---------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
