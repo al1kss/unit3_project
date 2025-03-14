@@ -38,6 +38,14 @@ I propose creating a cross-platform computer application to streamline ordering 
 ![Project 1](https://github.com/user-attachments/assets/856454e9-b49a-491b-a471-1ba7603a3978) 
 **Fig 2** *System diagram of proposed solution*
 
+## UML Diagram
+<img width="1378" alt="Screenshot 2025-03-14 at 16 07 36" src="https://github.com/user-attachments/assets/1803e822-90b4-4033-a6e0-22792b10afa4" />
+**Fig 3** *UML Diagram of the classes*
+
+## ER Diagram
+<img width="738" alt="Screenshot 2025-03-14 at 16 27 11" src="https://github.com/user-attachments/assets/add44af0-ec35-4c8e-8b27-17541e7f9747" />
+**Fig 4** *ER Diagram of the databases*
+
 ## Test Plan
 | Test Case                                         | Procedure                                                                                                                                                                                                        | Planned Outcome                                                                                                                                                 | Success Criteria                                                                                                            |
 |---------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
