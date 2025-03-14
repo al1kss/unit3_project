@@ -10,6 +10,10 @@ The owner of "NomNom" has observed a noticeable dip in customer satisfaction and
 ## Proposed Solution
 I propose creating a cross-platform computer application to streamline ordering and enhance operational efficiency at a modern pizza restaurant. To address the client’s need for portability, low cost, and future-proofing, I will use Python rather than compiled languages such as C, because while C is very fast and close to the hardware, it is less convenient for rapidly building user interfaces and requires manual memory management[^1]. Python, by contrast, is open-source, meaning there are no additional licensing fees[^2], and it runs on any operating system as long as Python is installed, making it well-suited if the store upgrades or relocates. Likewise, although Java is a popular choice for cross-platform development, it typically involves a separate runtime environment and is more closely associated with mobile or enterprise environments. Building the interface in Python will be done with the Kivy framework and its KivyMD extension[^3]: Kivy’s multi-platform support ensures that the interface will appear consistent and function smoothly on different screen sizes, while KivyMD’s Material Design components offer a clean, modern look that aligns with the restaurant’s brand image. Finally, I will store the restaurant’s data in SQLite rather than using flat-file formats such as CSV or JSON[^5], since the application must handle interconnected data (customer profiles, menu items, order histories) and benefit from SQL querying[^6]. Although server-based databases like MySQL or PostgreSQL were considered, SQLite is a better fit for a single-computer environment because it is serverless and lightweight, reducing overhead and maintenance costs while preserving relational capabilities.
 
+## Appendix A: Evidence of Client Consultation
+<img width="471" alt="Screenshot 2025-03-14 at 16 58 21" src="https://github.com/user-attachments/assets/5c57cec0-c273-4fb7-ade9-bceae267d749" />
+
+
 
 [^1]: Merrill, Cache. "7 Important Reasons Why You Should Use Python." Zibtek, 1 September 2019, https://www.zibtek.com/blog/7-important-reasons-why-you-should-use-python
 [^2]:Yakymiv, Volodymyr. "Choosing the Best Language for App Development: 7 Options to Consider." Forbytes, 3 November 2023, https://forbytes.com/blog/best-language-for-app-development
@@ -48,6 +52,9 @@ I propose creating a cross-platform computer application to streamline ordering 
 
 ## Flow Diagram
 <img width="733" alt="Screenshot 2025-03-14 at 16 43 18" src="https://github.com/user-attachments/assets/aa9127ec-4048-4917-9a71-d138c891977d" />
+**Fig 5** *Flow diagram of the software's login method from the `LoginScreen` class that can differentiate between employees and customer*
+
+
 
 ## Test Plan
 | Test Case                                         | Procedure                                                                                                                                                                                                        | Planned Outcome                                                                                                                                                 | Success Criteria                                                                                                            |
