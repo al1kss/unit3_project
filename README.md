@@ -24,20 +24,11 @@ I propose creating a cross-platform computer application to streamline ordering 
 [^12]: https://docs.python.org/3/library/threading.html
 
 ## Success Criteria
-1. Robust Authentication System:
-The app must include secure login and registration for both customers and staff, ensuring access is limited to verified users.
-
-2. Intuitive Menu and Order Placement:
-Users are able to view detailed descriptions of pizzas, choose from various customization options, and easily place their orders, reducing the likelihood of order discrepancies.
-
-3. Immediate Staff Notice:
-Kitchen and delivery staff should receive real-time change on the app when an order is placed, enabling them to prepare and dispatch orders promptly.
-
-4. Modification of Food Listings:
-The admin account can add or edit food listings through the pizza app
-
-5. Secure and Efficient Data Storage:
-All transaction data, including user credentials, order details, and menu information, must be securely stored in an SQLite database. This ensures data integrity, easy retrieval, and minimal risk of unauthorized access.
+1. The application provides a secure login and registration system that distinguishes between customer and staff accounts, ensuring only verified users can access features relevant to their role.
+2. The application allows customers to browse a visually detailed menu, select from various customization options, and place orders confidently, reducing the risk of mistakes.
+3. The application notifies kitchen and delivery staff in real time whenever a new order is placed, allowing immediate preparation and efficient dispatch.
+4. The application enables the admin account to add food listings directly through the interface, ensuring the menu stays current without requiring separate tools.
+5. The application stores all user credentials, orders, and menu data in an SQLite database, guaranteeing secure, efficient retrieval of information and preventing unauthorized access.
 
 
 
