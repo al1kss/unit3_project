@@ -75,15 +75,284 @@ I propose creating a cross-platform computer application to streamline ordering 
 
 
 # Criterion C: Development
+## Existing Tools
+| Software/Development Tool    |
+|------------------------------|
+| Python                       |
+| PyCharm                      |
+| KivyMD                       |
+| SQLite (relational database) |
 
-### 1. Secure and Efficient Data Storage – #Success Criteria 5
-To meet success criterion 5, I ensured that all transaction data—including user credentials, menu information, and order details—is securely stored in an SQLite database. This strategy guarantees data integrity, facilitates easy retrieval, and minimizes the risk of unauthorized access.
+| Libraries |
+|-----------|
+| Kivy      |
+| KivyMD    |
+| sqlite3   |
+| requests  |
+| json      |
 
-My project utilizes separate SQLite databases to logically partition different types of data:
+## List of Techniques Used
+1. Classes and Object-Oriented Programming
+- To keep the code well-structured and readable (e.g., separate Screen classes for each UI screen)
+2. Functions
+- To encapsulate repeated logic (e.g., password hashing, database queries) and avoid code duplication
+3. Conditional Statements (if-else)
+- To handle user permissions (e.g., only admins can modify food listings)
+4. Loops (for/while)
+- For iterating through database records (e.g., displaying menu items or orders)
+5. Relational Databases (SQLite)
+- To store and retrieve data across multiple tables (user credentials, menu items, orders) with referential integrity
+6. GUI Development (Kivy/KivyMD)
+- To create a visually consistent interface with Material Design components for a modern look
+7. Real-Time Updates
+- To notify staff of new orders (e.g., staff sees an updated order screen instantly)
 
-#### User Authentication (login.sql):
-The `user` table stores user credentials and role information. This table enforces uniqueness for usernames and emails while using role-based access to distinguish between regular users and administrators. For example:
+## Development
+### Code Organization and Database Setup
+All screens inherit from `MDScreen` in KivyMD, and each screen is a class in the main Python file (e.g., `MainScreen`, `LoginScreen`, `AdminOrdersScreen`). The root `MDApp` subclass manages the application’s flow and connects to the `pizza.kv` file, which defines the UI layout. Below is an example of how I declared the screens in `pizza.kv`:
+```.kv
+ScreenManager:
+    LoginScreen:
+        name: "LoginScreen"
+    MainScreen:
+        name: "MainScreen"
+    AdminOrdersScreen:
+        name: "AdminOrdersScreen"
+    # ...
+
+```
+
+### Multiple SQLite Tables vs. Single Database File
+To keep the application secure, I use different databases so if one database gets hacked, the other will still be secure. Furthermore, to maintain clarity and logical separation, my application uses multiple tables (and, in practice, multiple `.sql` files) rather than a single giant table. This design keeps user credentials, menu items, and orders in distinct schemas, avoiding data collisions and allowing easier modifications. For example:
+- `login.sql`: Manages user credentials, roles, and secure password storage
+- `menu.sql`: Stores menu items (pizza name, description, price, image)
+- `orders.sql`: Records placed orders, linking them to user accounts and statuses
+A single relational database engine (SQLite) handles these tables seamlessly, ensuring referential integrity (e.g., an order references a valid user ID).
+
+### Success Criterion 1: Secure Login & Registration
+>“The application provides a secure login and registration system that distinguishes between customer and staff accounts.”
+Implementation
 ```.py
+class LoginScreen(Screen):
+    def try_login(self):
+        username = self.ids.uname.text
+        password = self.ids.passwd.text
+        # Query user table from login.sql
+        result = db.search(f"SELECT * FROM user WHERE username='{username}'")
+        if result and check_password(user_password=password, hashed_password=result[0][3]):
+            print("Login successful!")
+            # Distinguish admin vs. user
+            user_type = result[0][4]  # e.g., 'admin' or 'user'
+            if user_type == "admin":
+                self.manager.current = "AdminOrdersScreen"
+            else:
+                self.manager.current = "MainScreen"
+        else:
+            # Show invalid credentials dialog
+```
+Why multiple roles?
+- Admins can modify the menu and update orders
+- Regular users can only place orders
+Why a separate `login.sql`?
+- Prevents accidental mixing of user data with menu or order records
+- Easier to enforce constraints (unique username/email, role-based checks)
+#### Password Hashing
+A `secure_password` library ensures that plain-text passwords are never stored. During registration:
+```.py
+hash_pass = encrypt_password(passwd)
+db.run_save(f"INSERT INTO user(username, email, password, type) VALUES ('{uname}', '{email}', '{hash_pass}', 'user')")
+```
+#### Secure Password library
+```.py
+from passlib.context import CryptContext
+
+#Create an object of the class cryptocontext
+pwd_config = CryptContext(schemes=["pbkdf2_sha256"],
+                          default="pbkdf2_sha256",
+                          pbkdf2_sha256__default_rounds=30000
+                          )
+
+#this function receives the unsafe password
+# and returns the hashed password
+
+def encrypt_password(user_password):
+    return pwd_config.hash(user_password)
+
+def check_password(hashed_password, user_password):
+    return pwd_config.verify(user_password, hashed_password)
+```
+This step reduces the risk of data breaches
+
+
+
+
+### Success Criterion 2: Intuitive Menu & Order Placement
+>“The application allows customers to browse a visually detailed menu, select customization options, and place orders.”
+Implementation
+```.py
+class MainScreen(Screen):
+    def on_pre_enter(self, *args):
+        self.load_menu()
+
+    def load_menu(self):
+        # Fetch menu items from menu.sql
+        items = db.search("SELECT name, description, price, image FROM menu")
+        self.ids.menu_list.clear_widgets()
+        for name, desc, price, img in items:
+            card = HeritageFoodCard()
+            card.ids.pizza_name.text = name
+            card.ids.pizza_desc.text = desc
+            card.ids.pizza_price.text = f"from {price} сом"
+            card.ids.pizza_image.source = img
+            # Binding card press to add-to-cart logic
+            card.bind(on_release=self.add_to_cart)
+            self.ids.menu_list.add_widget(card)
+        if LoginScreenReal.current_user_type == "admin":
+            self.ids.menu_list.add_widget(AddPizzaCard())
+
+class HeritageFoodCard(Factory.MDCard):
+    """Pizza item card with 'Add to cart' button."""
+    pass
+
+class AddPizzaCard(Factory.MDCard):
+    """Pizza item card with 'Add to cart' button."""
+    pass
+```
+```.kv
+<HeritageFoodCard@MDCard>:
+    size_hint_y: None
+    height: dp(120)
+    md_bg_color: 0.15, 0.15, 0.15, 1
+    radius: [15, 15, 15, 15]
+    elevation: 2
+    padding: dp(10)
+    spacing: dp(10)
+    orientation: "horizontal"
+
+    # Circularpizza image on the left
+    # Using FitImage so it resizes nicely.
+    FitImage:
+        id: pizza_image
+        size_hint: None, None
+        size: dp(100), dp(100)
+        radius: [40, 40, 40, 40]  # round corners to mimic a circle
+        keep_ratio: True
+        allow_stretch: True
+
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: dp(2)
+
+        MDLabel:
+            id: pizza_name
+            text: "Pizza Name"
+            font_style: "Subtitle1"
+            theme_text_color: "Custom"
+            text_color: 1, 1, 1, 1
+
+        MDLabel:
+            id: pizza_desc
+            text: "Description"
+            font_style: "Caption"
+            theme_text_color: "Custom"
+            text_color: 0.8, 0.8, 0.8, 1
+
+        MDLabel:
+            id: pizza_price
+            text: "from 295 JPY"
+            font_style: "Body2"
+            theme_text_color: "Custom"
+            text_color: 1, 0.6, 0, 1
+
+<AddPizzaCard@MDCard>:
+    size_hint_y: None
+    height: dp(120)
+    md_bg_color: 0.2, 0.2, 0.2, 1
+    radius: [15, 15, 15, 15]
+    elevation: 2
+    padding: dp(10)
+    spacing: dp(10)
+    orientation: "vertical"
+    on_release: app.root.get_screen("MainScreen").show_add_pizza_dialog()
+
+    MDBoxLayout:
+        size_hint_y: None
+        height: dp(100)
+        spacing: dp(10)
+        MDIconButton:
+            icon: "plus"
+            theme_text_color: "Custom"
+            text_color: 1, 1, 1, 1
+            size_hint: None, None
+            size: dp(100), dp(100)
+```
+Here I used Heritage that acts as `MDCard`, so that I don't have to create a lot of code just to add one more pizza. Furthermore this is more optimized so the program can run on any system.
+
+Why did I separate `menu.sql`?
+- Menu data is distinct from user credentials and order transactions
+- Updates to the menu do not risk overwriting user or order info
+
+GUI
+Using KivyMD’s `MDCard` + `FitImage` for each pizza item provides a modern, visually appealing layout.
+
+### Success Criterion 3: Immediate Staff Notice
+>“The application notifies kitchen and delivery staff in real time when an order is placed.”
+Implementation
+```.py
+class AdminOrdersScreen(Screen):
+    def on_pre_enter(self, *args):
+        self.load_orders()
+
+    def load_orders(self):
+        self.ids.orders_list.clear_widgets()
+        # Query orders from orders.sql
+        query = "SELECT order_id, user_email, item_name, item_price, ticket_number, status FROM orders ORDER BY order_id DESC"
+        rows = db.search(query)
+        for order in rows:
+            order_card = OrderItemRow(order_data=order)
+            self.ids.orders_list.add_widget(order_card)
+```
+Whenever a new order is placed in the `MainScreen`, the staff’s `AdminOrdersScreen` is updated to show the new order:
+```.py
+def place_order(self):
+    # Insert into orders.sql
+    db.run_save(f"INSERT INTO orders(user_id, user_email, item_name, item_price, ticket_number) VALUES(...)")
+    # Real-time update
+    # If staff is already on AdminOrdersScreen, they see the new order upon screen refresh or on_pre_enter
+```
+Why did I use multiple tables?
+- Each order references user info (by ID or email).
+- Using `orders.sql` avoids mixing with menu or user credentials, preventing confusion.
+
+### Success Criterion 4: Modification of Food Listings
+>“The application enables the admin account to add or edit food listings through the pizza app.”
+Implementation
+```.py
+class MainScreen(Screen):
+    def load_menu(self):
+        items = db.search("SELECT ... FROM menu")
+        for name, desc, price, img in items:
+            # ...
+        if current_user_type == "admin":
+            # Show AddPizzaCard for admin only
+            self.ids.menu_list.add_widget(AddPizzaCard())
+
+class AddPizzaCard(MDCard):
+    def on_release(self):
+        # Pop-up for admin to enter name, desc, price
+        # Insert into menu.sql
+        db.run_save(f"INSERT INTO menu(name, description, price, image) VALUES(...)")
+```
+Motivation
+- Admins frequently update the menu (new items, promotions, etc.)
+- This design ensures that only authorized staff can modify the `menu` table
+
+### Success Criterion 5: Secure & Efficient Data Storage
+>“All user credentials, order details, and menu information are stored in an SQLite database, ensuring data integrity and minimal unauthorized access.”
+Implementation
+#### Multiple Database Tables
+1. User Table (login.sql)
+```.sql
 CREATE TABLE IF NOT EXISTS user(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE,
@@ -92,9 +361,8 @@ CREATE TABLE IF NOT EXISTS user(
     type TEXT DEFAULT 'user'
 );
 ```
-#### Menu Data (menu.sql):
-The `menu` table holds details of each pizza item, such as the name, description, price, and image filename. This design ensures that menu items are unique and contain all the necessary details for display:
-```.py
+2. Menu Table (menu.sql)
+```.sql
 CREATE TABLE IF NOT EXISTS menu(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL,
@@ -103,9 +371,8 @@ CREATE TABLE IF NOT EXISTS menu(
     image TEXT DEFAULT 'pizza.png'
 );
 ```
-#### Order Details (orders.sql):
-The `orders` table records every order made by users. Each order includes the user ID, user email, item name, official price, a generated ticket number, and a default status of “Awaiting”. This structure allows for efficient order tracking and enables admin users to update the order status:
-```.py
+3. Orders Table (orders.sql)
+```.sql
 CREATE TABLE IF NOT EXISTS orders(
     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
@@ -116,210 +383,29 @@ CREATE TABLE IF NOT EXISTS orders(
     status TEXT DEFAULT 'Awaiting'
 );
 ```
-#### I used AutoIncrement for all IDs since, AutoIncrement is a feature in SQL that allows you to automatically generate unique values for a column when new rows are inserted into a table
-#### Password Security
-To safeguard user credentials, I implemented password hashing using a custom module named `secure_password`. This module provides two key functions:
-- `encrypt_password(password)`: Hashes the plain-text password (using a secure SHA-256 algorithm) before storing it in the database.
-- `check_password(user_password, hashed_password)`: Verifies the provided password during login by comparing its hash with the stored hash.
-For example, during registration:
+Why not a single table?
+- A single table would become unwieldy, forcing repeated columns for user data, menu items, and order details
+- Proper normalization across multiple tables reduces redundancy and avoids anomalies when inserting or updating records
+- If one of the tables gets hacked the other tables will still be stored securely
+#### Password Hashing
 ```.py
-password_hash = encrypt_password(password)
-db.run_save(f"INSERT INTO user(username, email, password) VALUES ('{username}', '{email}', '{password_hash}')")
+hashed_pass = encrypt_password(password)
+db.run_save(f"INSERT INTO user(username, email, password) VALUES ('{uname}', '{email}', '{hashed_pass}')")
 ```
-And during login:
+Ensures stolen database files do not reveal raw passwords
+#### Transaction Accuracy
+When an order is placed, the official price is fetched from `menu.sql` to ensure consistent billing:
 ```.py
-user_info = db.search(f"SELECT * FROM user WHERE username='{username}'")
-if user_info and check_password(user_password=password, hashed_password=user_info[0][3]):
-    print("Login successful!")
+price_db = db.search(f"SELECT price FROM menu WHERE name='{item_name}'")
 ```
-This method protects sensitive data by ensuring that even if the database is compromised, actual passwords remain undisclosed.
-#### Data Integrity and Retrieval
-- Accurate Billing:
--- When an order is placed, the system fetches the official price from the `menu.sql` database to ensure accurate billing.
-- Role-based Access:
--- The user type stored in the `user` table facilitates role-based access control, ensuring that only admins can access certain features (e.g., updating order statuses).
-- Transaction Consistency:
--- The checkout process writes order data to `orders.sql` with a unique ticket number and default status, ensuring that each order is recorded reliably.
+This approach avoids relying on user-inputted prices
 
 
-### 2. Modification of Food Listings – #Success Criteria 4
-To meet success criterion 4, I implemented a system where only admin users can add or modify food listings in the pizza app. This ensures that regular users cannot alter the menu, maintaining control over available food options. Below is a detailed explanation of how this functionality is achieved.
-#### Restricting Access to Admin Users
-The system ensures that only admin users can modify the food menu using the `LoginScreenReal.current_user_type` variable. This variable stores the user type and determines if an "Add Pizza" button is displayed.
-
-#### Admin-Only Add Button
-In the `MainScreen` class, when loading the menu, the system checks whether the logged-in user is an admin:
-```.py
-if LoginScreenReal.current_user_type == "admin":
-    container.add_widget(AddPizzaCard())
-```
-- If the current user is an admin, an instance of `AddPizzaCard` is added to the screen.
-- If the user is not an admin, they do not see the button and cannot add new food items.
-
-#### Adding a New Pizza Item
-When an admin clicks the "Add Pizza" button, a pop-up (`MDDialog`) appears, allowing them to input details for a new pizza.
-#### Pop-Up Dialog for Admins
-The `show_add_pizza_dialog()` function constructs a form for adding new food items:
-```.py
-self.pizza_name = MDTextField(hint_text="Pizza Name")
-self.pizza_desc = MDTextField(hint_text="Description")
-self.pizza_price = MDTextField(hint_text="Price", input_type="number")
-self.pizza_image = MDTextField(hint_text="Image Filename", text="pizza.png")
-```
-- Admins enter the name, description, price, and image filename of the pizza.
-- Two buttons are present:
-- `"Cancel"` – closes the pop-up.
-- `"Add"` – calls the `add_pizza_to_db()` function to store the new pizza.
-
-#### Storing the New Pizza in the Database
-Once the admin submits the form, the `add_pizza_to_db()` function processes the data:
-```.py
-query = f"""
-INSERT INTO menu (name, description, price, image)
-VALUES ('{name}', '{description}', {price}, '{image}')
-"""
-db.run_save(query)
-```
-
-### Immediate Staff Notice - #Success Criteria 3
-This functionality ensures that kitchen and delivery staff receive real-time updates on new orders, allowing them to prepare and dispatch items promptly. The implementation includes an admin order management screen that dynamically updates with the latest orders and enables staff to change order statuses.
-#### Key Components
-1. `OrderItemRow` Class (Order Representation)
-2. `AdminOrdersScreen` Class (Order Management)
-3. 
-#### Kivy KV Layout for UI Representation
-Explanation of `OrderItemRow`
-```.py
-class OrderItemRow(MDCard):
-    order_data = ListProperty()
-```
-
-- The `OrderItemRow` class represents individual orders in the admin panel.
-- The `ListProperty` stores order details (e.g., order ID, customer email, item name, price, ticket number, and status).
-#### Initializing Order Data
-```.py
- def __init__(self, order_data, **kwargs):
-        padded_data = list(order_data)
-        if len(padded_data) < 7:
-            defaults = ["Unknown", "Unknown", "Unknown", "Unknown", 0, "Unknown", "Awaiting"]
-            padded_data += defaults[len(padded_data):]
-        kwargs["order_data"] = padded_data
-        super().__init__(**kwargs)
-```
-- This method ensures that incomplete order data is padded with default values.
-- The `kwargs` dictionary ensures that the parent class ('MDCard') is initialized correctly.
-- Why this approach? It prevents crashes due to missing data and guarantees UI consistency.
-
-#### Handling Order Status Changes
-```.py
-    def open_status_menu(self):
-        if not self.menu:
-            menu_items = [
-                {"text": "Awaiting", "viewclass": "OneLineListItem", "on_release": lambda x="Awaiting": self.set_status(x)},
-                {"text": "Done", "viewclass": "OneLineListItem", "on_release": lambda x="Done": self.set_status(x)},
-            ]
-            self.menu = MDDropdownMenu(
-                caller=self.ids.status_dropdown,
-                items=menu_items,
-                width_mult=4,
-            )
-        self.menu.open()
-```
-- The `open_status_menu` method creates a dropdown menu to update an order’s status.
-- Why a dropdown menu? It simplifies UI interaction, preventing manual text entry errors.
-
-```.py
-    def set_status(self, new_status):
-        self.ids.status_dropdown.text = new_status
-        self.menu.dismiss()
-        App.get_running_app().root.get_screen("AdminOrdersScreen").update_order_status(self.order_data[0], new_status)
-```
-- Updates the UI to reflect the new status.
-- Calls `update_order_status()` in `AdminOrdersScreen` to modify the database.
-#### Explanation of AdminOrdersScreen
-```.py
-class AdminOrdersScreen(Screen):
-    def on_pre_enter(self, *args):
-        self.load_orders()
-```
-- Ensures that orders are refreshed whenever this screen is entered.
-Loading Orders from Database
-```.py
-    def load_orders(self):
-        container = self.ids.orders_list
-        container.clear_widgets()
-        db = DatabaseManager(name="orders.sql")
-        query = """
-            SELECT order_id, user_id, user_email, item_name, item_price, ticket_number, status
-            FROM orders
-            ORDER BY order_id DESC
-        """
-        orders = db.search(query)
-        db.close()
-        for order in orders:
-            order_card = OrderItemRow(order_data=order)
-            container.add_widget(order_card)
-```
-- This method fetches all orders from the database, sorts them by order_id (newest first), and populates the admin UI.
-- Why sort by `order_id` DESC? Ensures that the most recent orders appear at the top.
-Updating Order Status in Database
-```.py
-    def update_order_status(self, order_id, new_status):
-        db = DatabaseManager(name="orders.sql")
-        query = f"UPDATE orders SET status = '{new_status}' WHERE order_id = {order_id}"
-        db.run_save(query)
-        db.close()
-        self.load_orders()
-```
-- Modifies the order’s status in the database.
-- Why reload orders? To reflect the latest changes instantly on the UI.
-
-### Explanation of KV File (UI Representation)
-```.kv
-<AdminOrdersScreen>:
-    name: "AdminOrdersScreen"
-    MDBoxLayout:
-        orientation: "vertical"
-        md_bg_color: 0.06, 0.06, 0.06, 1
-```
-- Defines the overall layout of the admin screen.
-Orders List Container
-```.kv
-        ScrollView:
-            MDBoxLayout:
-                id: orders_list
-                orientation: "vertical"
-                size_hint_y: None
-                height: self.minimum_height
-                spacing: dp(8)
-                padding: dp(8)
-```
-- Displays orders dynamically inside a scrollable container
-Order Item Layou
-```.kv
-<OrderItemRow@MDCard>:
-    orientation: "vertical"
-    size_hint_y: None
-    height: dp(120)
-    md_bg_color: 1.0, 0.549, 0.0, 1
-    padding: dp(10)
-    spacing: dp(5)
-```
-- Each order appears as a colored card.
-- Why `md_bg_color: 1.0, 0.549, 0.0, 1`? Uses an orange shade to indicate urgency.
-Status Dropdown UI
-```.kv
-        MDDropDownItem:
-            id: status_dropdown
-            text: root.order_data[6]
-            on_release: root.open_status_menu()
-            size_hint_x: 0.5
-```
-- Enables quick status updates for each order
 
 ### Credits:
-1. https://stackoverflow.com/questions/63783442/how-to-make-a-kivymd-page-navigation-and-insert-some-categories-at-the-main-menu
+1. https://stackoverflow.com/questions/63783442/how-to-make-a-kivymd-page-navigation-and-insert-some-categories-at-the-main-menu (used for debugging)
 2. https://kivymd.readthedocs.io/en/1.1.1/components/button/#mdiconbutton (code for all icon navigation)
-3. https://www.istockphoto.com/en/search/2/image?mediatype=illustration&phrase=logo+funny+pizza
-4. https://stackoverflow.com/questions/60387236/valueerror-kivymd-app-object-must-be-inherited-from-kivymd-app-mdapp
-5. https://kivymd.readthedocs.io/en/latest/themes/theming/
+3. https://www.istockphoto.com/en/search/2/image?mediatype=illustration&phrase=logo+funny+pizza (used to look for pizza pictures)
+4. https://stackoverflow.com/questions/60387236/valueerror-kivymd-app-object-must-be-inherited-from-kivymd-app-mdapp (documentation)
+5. https://kivymd.readthedocs.io/en/latest/themes/theming/ (documentation)
+6. https://chatgpt.com (used to generate pizza details in sql databases)
